@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h2>Dashboard</h2>
+  <span class="page-sub">Real-time case metrics & SLA tracking</span>
+</div>
+
+<!-- Metric cards -->
+<div class="metric-grid">
+  <div class="metric-card">
+    <span class="metric-label">Total Cases</span>
+    <span class="metric-value">{{ total }}</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-label">Open</span>
+    <span class="metric-value text-warning">{{ open_cases }}</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-label">In Progress</span>
+    <span class="metric-value text-info">{{ in_progress }}</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-label">Resolved</span>
+    <span class="metric-value text-success">{{ resolved }}</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-label">SLA Breached</span>
+    <span class="metric-value text-danger">{{ breached }}</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-label">FCR Rate</span>
+    <span class="metric-value {% if fcr_rate >= 90 %}text-success{% elif fcr_rate >= 70 %}text-warning{% else %}text-danger{% endif %}">{{ fcr_rate }}%</span>
+  </div>
+</div>
+
+<div class="two-col">
+
+  <!-- Tier breakdown -->
+  <div class="card">
+    <h3 class="card-title">Cases by Tier</h3>
+    <div class="tier-bars">
+      <div class="tier-row">
+        <span class="tier-name">Tier 1 — Basic (SLA 4h)</span>
+        <div class="bar-bg">
+          <div class="bar-fill bar-t1" style="width: {% if total %}{{ (tier_counts.get(1,0)/total*100)|round|int }}%{% else %}0%{% endif %}"></div>
+        </div>
+        <span class="tier-count">{{ tier_counts.get(1, 0) }}</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-name">Tier 2 — Escalated (SLA 24h)</span>
+        <div class="bar-bg">
+          <div class="bar-fill bar-t2" style="width: {% if total %}{{ (tier_counts.get(2,0)/total*100)|round|int }}%{% else %}0%{% endif %}"></div>
+        </div>
+        <span class="tier-count">{{ tier_counts.get(2, 0) }}</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-name">Tier 3 — Engineering (SLA 72h)</span>
+        <div class="bar-bg">
+          <div class="bar-fill bar-t3" style="width: {% if total %}{{ (tier_counts.get(3,0)/total*100)|round|int }}%{% else %}0%{% endif %}"></div>
+        </div>
+        <span class="tier-count">{{ tier_counts.get(3, 0) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent escalations -->
+  <div class="card">
+    <h3 class="card-title">Recent Escalations</h3>
+    {% if escalations %}
+    <table class="table">
+      <thead>
+        <tr><th>Case</th><th>From</th><th>To</th><th>By</th></tr>
+      </thead>
+      <tbody>
+        {% for e in escalations %}
+        <tr>
+          <td><a href="{{ url_for('case_detail', case_id=e['case_id']) }}">{{ e['title'][:28] }}…</a></td>
+          <td><span class="tier-badge t{{ e['from_tier'] }}">T{{ e['from_tier'] }}</span></td>
+          <td><span class="tier-badge t{{ e['to_tier'] }}">T{{ e['to_tier'] }}</span></td>
+          <td>{{ e['escalated_by'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty">No escalations yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Recent cases table -->
+<div class="card" style="margin-top: 1.25rem;">
+  <div class="card-head-row">
+    <h3 class="card-title">Recent Cases</h3>
+    <a href="{{ url_for('cases') }}" class="link-sm">View all →</a>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Tier</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>SLA</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in cases %}
+      {% set sla = sla_status(c['sla_deadline'], c['resolved_at']) %}
+      <tr>
+        <td class="mono">{{ c['id'] }}</td>
+        <td><a href="{{ url_for('case_detail', case_id=c['id']) }}">{{ c['title'][:45] }}{% if c['title']|length > 45 %}…{% endif %}</a></td>
+        <td><span class="tier-badge t{{ c['tier'] }}">T{{ c['tier'] }}</span></td>
+        <td><span class="priority-badge {{ c['priority'] }}">{{ c['priority'] }}</span></td>
+        <td><span class="status-badge {{ c['status'] }}">{{ c['status'].replace('_',' ') }}</span></td>
+        <td><span class="sla-{{ sla }}">{{ format_countdown(c['sla_deadline'], c['resolved_at']) }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
