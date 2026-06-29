@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg width="32" height="32" viewBox="0 0 20 20" fill="none">
+        <rect x="1" y="1" width="8" height="8" fill="#f25022"/>
+        <rect x="11" y="1" width="8" height="8" fill="#7fba00"/>
+        <rect x="1" y="11" width="8" height="8" fill="#00a4ef"/>
+        <rect x="11" y="11" width="8" height="8" fill="#ffb900"/>
+      </svg>
+      <h1>CaseDesk</h1>
+    </div>
+    <p class="login-sub">Tier 2/3 Case Management System</p>
+
+    <form method="POST">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="admin / agent1 / agent2" required autofocus>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="admin123 / agent123" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Sign in</button>
+    </form>
+
+    <div class="demo-creds">
+      <p><strong>Demo credentials</strong></p>
+      <p>Admin: <code>admin</code> / <code>admin123</code></p>
+      <p>Agent: <code>agent1</code> / <code>agent123</code></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
